@@ -5,6 +5,11 @@
 
 #define NUM_BUTTONS 10
 
+#define TOKEN_PLUS '+'
+#define TOKEN_MINUS '-'
+#define TOKEN_MULT '*'
+#define TOKEN_DIV '/'
+
 typedef struct {
     char *left_operand;
     char *operator;
@@ -13,7 +18,6 @@ typedef struct {
 
 Operation operation = { NULL, NULL, NULL };
 
-int left_operand;
 
 int row_for_button_index(int index) {
     if (index < 3) {
@@ -43,6 +47,10 @@ bool is_integer(char value) {
     return value >= '0' && value <= '9';
 }
 
+bool is_operator(char value) {
+    return value == TOKEN_PLUS || value == TOKEN_MINUS || value == TOKEN_MULT || value == TOKEN_DIV;
+}
+
 void append_char(char *str, char c, size_t max_len) {
     size_t len = strlen(str);
     if (len + 1 < max_len) {
@@ -56,32 +64,19 @@ void append_char(char *str, char c, size_t max_len) {
 static void button_click(GtkButton *button, gpointer passed_label) {
     GtkWidget *label = GTK_WIDGET(passed_label);
     const char *name = gtk_button_get_label(button);
-    // char result_str[20];
-    // int result = left_operand + operand;
     
     if (is_integer(*name)) {
         if (operation.left_operand == NULL) {
             int operand = atoi(name);
             assign_left_operand(operand);
         } else {
-            // operation.left_operand 
             append_char(operation.left_operand, name[0], sizeof(char *));
         }
+    } else if (is_operator(*name) && operation.operator == NULL) {
+        operation.operator = (char *)name;
     }
-    // snprintf(result_str, sizeof(result_str), "%d", result);
-    // gtk_label_set_text(GTK_LABEL(label), result_str);
     gtk_label_set_text(GTK_LABEL(label), operation.left_operand);
 }
-
-// static void calculate(GtkButton *button, gpointer passed_label) {
-//     GtkWidget *label = GTK_WIDGET(passed_label);
-//     const char *name = gtk_button_get_label(button);
-//     int operand = atoi(name);
-//     char result_str[20];
-//     int result = left_operand + operand;
-//     snprintf(result_str, sizeof(result_str), "%d", result);
-//     gtk_label_set_text(GTK_LABEL(label), result_str);
-// }
 
 static void on_activate(GtkApplication *app) {
     // Create a new window
@@ -116,7 +111,6 @@ static void on_activate(GtkApplication *app) {
 
 int main (int argc, char *argv[]) {
     int status;
-    left_operand = 8;
     // Create a new application
     GtkApplication *app = gtk_application_new("com.example.GtkApplication", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
